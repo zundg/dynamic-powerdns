@@ -1,0 +1,16 @@
+dynamic-powerdns
+
+Provides a very simple webpage to create and update DNS records.
+
+Installation:
+
+- copy the php files into some php enabled location
+- create config.php (see config.php.example) 
+- modify your powerdns mysql tables:
+alter table domains add column dyndns integer default 0;
+alter table records add column email varchar(64);
+alter table records add column webkey varchar(16);
+
+set dyndns to 1 for those domains you want to have available.
+
+
