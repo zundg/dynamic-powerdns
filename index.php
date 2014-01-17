@@ -14,9 +14,11 @@ if($key != ""){
 	$row=mysql_fetch_row($r);
 	$soa=explode(" ", $row[0]);
 	$soa[2]++;
+	$r=mysql_query("select domain_id from records where webkey='$key'");
+	$domain_id=mysql_fetch_row($r);
 	mysql_query("update records set content='" . implode(" ", $soa) . "', change_date=unix_timestamp() 
-		where type='SOA' and domain_id=(select domain_id from records where webkey='$key')");
-	echo "all records for key '$key' have been updated";
+		where type='SOA' and domain_id=$domain_id[0]");
+	echo "all records for key '$key' have been updated<br>";
 } else {
 	$a="<select name=domain>";
 	$r=mysql_query("select id, name from domains where dyndns=1");
