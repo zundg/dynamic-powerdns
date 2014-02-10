@@ -3,11 +3,22 @@ include("config.php");
 $host=strtolower(preg_replace('/[^0-9a-zA-Z\-]/', '', $_POST['host']));
 $email=strtolower(preg_replace('/[^0-9a-zA-Z\-\+_@\.]/', '', $_POST['email']));
 $key=webkey();
+$domain=strtolower(preg_replace('/[^0-9a-zA-Z\-\.]/', '', $_POST['domain']));
+$r=mysql_query("select id from domains where dyndns=1 and name='$domain'");
+$row=mysql_fetch_row($r);
+$domain_id=$row[0];
+
+if (! $domain_id > 0) {
+	echo "bad domain selected, try again!";
+	exit;
+}
+
 if ($host == "") {
 	echo "empty host, please retry!";
 	exit;
 }
-$r=mysql_query("select count(*) from records where name='$host.0j4.de'");
+
+$r=mysql_query("select count(*) from records where name='$host.$domain'");
 $row=mysql_fetch_row($r);
 if ($row[0] > 0) {
 	echo "already taken, try a different hostname!";
@@ -17,15 +28,8 @@ if (! checkEmail($email)) {
 	echo "bad email, try again!";
 	exit;
 }
-$domain=strtolower(preg_replace('/[^0-9a-zA-Z\-\.]/', '', $_POST['domain']));
-$r=mysql_query("select count(*) from domains where dyndns=1 and name='$domain'");
-$row=mysql_fetch_row($r);
-if ($row[0] < 1) {
-	echo "bad domain selected, try again!";
-	exit;
-}
-mysql_query("insert into records (domain_id, name, type, content, ttl, webkey, email) values (1, '$host.$domain', 'A', '127.0.0.1', 60, '$key', '$email')");
-if (mail($email, "$domain dynamic dns service", "Hi, \n\nYour update-url for $host.$domain is: ".curPageURL()."?$key\n\nIf you did not request this email, please ignore. There will be no further mailings")) {
+mysql_query("insert into records (domain_id, name, type, content, ttl, webkey, email) values ($domain_id, '$host.$domain', 'A', '127.0.0.1', 60, '$key', '$email')");
+if (mail($email, "$domain dynamic dns service", "Hi, \n\nYour update-url for $host.$domain is: ".curPageURL()."?$key\nAlternatively pass the key as password with any user name to above URL.\n\nIf you did not request this email, please ignore. There will be no further mailings")) {
 	echo "success. check your email!";
 } else {
 	echo "sending of email failed, please try again later";

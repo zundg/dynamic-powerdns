@@ -3,6 +3,9 @@ include("config.php");
 
 $k=explode("?",$_SERVER["REQUEST_URI"]);
 $key=preg_replace('/[^0-9a-zA-Z]*/', '', $k[1]);
+if ($key == "") { # oh shits, fritz!box is too stupid to GET an URL....
+	$key=$_SERVER["PHP_AUTH_PW"];
+}
 $ip=$_SERVER['REMOTE_ADDR'];
 if(strpos($ip, ":") != false) {
 	echo "sorry, IPv6 not supported!";
