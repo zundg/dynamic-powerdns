@@ -11,6 +11,6 @@ alter table domains add column dyndns integer default 0;
 alter table records add column email varchar(64);
 alter table records add column webkey varchar(16);
 
-set dyndns to 1 for those domains you want to have available.
+set dyndns to 1 in the powerdns.domains table for those domains you want to have available.
 
 
