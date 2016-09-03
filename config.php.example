@@ -3,7 +3,9 @@ $dbhost="localhost";
 $dbuser="pdns-user";
 $dbpass="your-password";
 $dbname="pdns-db";
- 
+$ns1="ns01.somedomain.tld"; 
+$ns2="ns02.somedomain.tld"; 
+
 mysql_connect($dbhost, $dbuser, $dbpass) or die(mysql_error());
 mysql_select_db($dbname) or die(mysql_error());
 ?>

@@ -9,11 +9,12 @@ if ($key == "") { # oh shits, fritz!box is too stupid to GET an URL....
 $ip=$_SERVER['REMOTE_ADDR'];
 $key=preg_replace('/[^0-9a-zA-Z]*/', '', $key);
 if(strpos($ip, ":") != false) {
-	echo "sorry, IPv6 not supported!";
-	exit;
+	$type = "AAAA";
+} else {
+	$type = "A";
 }
 if($key != ""){
-	mysql_query("UPDATE records SET content='$ip', change_date=unix_timestamp() WHERE webkey='$key';");
+	mysql_query("UPDATE records SET content='$ip', change_date=unix_timestamp(),type='$type' WHERE webkey='$key';");
 	$r=mysql_query("select content from records where type='SOA' and domain_id=(select domain_id from records where webkey='$key')");
 	$row=mysql_fetch_row($r);
 	$soa=explode(" ", $row[0]);
