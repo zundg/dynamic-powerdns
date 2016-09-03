@@ -6,6 +6,7 @@ $key=preg_replace('/[^0-9a-zA-Z]*/', '', $k[1]);
 if ($key == "") { # oh shits, fritz!box is too stupid to GET an URL....
 	$key=$_SERVER["PHP_AUTH_PW"];
 }
+$key=preg_replace('/[^0-9a-zA-Z]*/', '', $key);
 $ip=$_SERVER['REMOTE_ADDR'];
 $key=preg_replace('/[^0-9a-zA-Z]*/', '', $key);
 if(strpos($ip, ":") != false) {
