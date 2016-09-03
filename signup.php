@@ -18,9 +18,10 @@ if ($host == "") {
 	exit;
 }
 
-$r=mysql_query("select count(*) from records where name='$host.$domain'");
-$row=mysql_fetch_row($r);
-if ($row[0] > 0) {
+$r=mysql_query("select count(*) from records where name='$host.$domain' union select count(*) from domains where name='$host.$domain'");
+$row1=mysql_fetch_row($r);
+$row2=mysql_fetch_row($r);
+if ($row1[0] > 0 || $row2[0] > 0) {
 	echo "already taken, try a different hostname!";
 	exit;
 }
@@ -28,8 +29,35 @@ if (! checkEmail($email)) {
 	echo "bad email, try again!";
 	exit;
 }
-mysql_query("insert into records (domain_id, name, type, content, ttl, webkey, email) values ($domain_id, '$host.$domain', 'A', '127.0.0.1', 60, '$key', '$email')");
-if (mail($email, "$domain dynamic dns service", "Hi, \n\nYour update-url for $host.$domain is: ".curPageURL()."?$key\nAlternatively pass the key as password with any user name to above URL.\n\nIf you did not request this email, please ignore. There will be no further mailings")) {
+mysql_query("insert into domains (name, type, account) values ('$host.$domain', 'MASTER', 'EXTERN')");
+$r=mysql_query("select id from domains where name='$host.$domain'");
+$row=mysql_fetch_row($r);
+$domain_id=$row[0];
+mysql_query("insert into records (domain_id, name, type, content, ttl, webkey, email) values ($domain_id, '$host.$domain', 'A', '127.0.0.1', 3600, '$key', '$email')");
+mysql_query("insert into records (domain_id, name, type, content, ttl) values ($domain_id, '$host.$domain', 'NS', 'ns01.0j4.de', 3600)");
+mysql_query("insert into records (domain_id, name, type, content, ttl) values ($domain_id, '$host.$domain', 'NS', 'ns02.0j4.de', 3600)");
+mysql_query("insert into records (domain_id, name, type, content, ttl) values ($domain_id, '$host.$domain', 'SOA', 'ns1.$host.$domain. s-dns.geekbox.info. 1 12000 1800 604800 86400', 60)");
+mysql_query("insert into domainmetadata (domain_id, kind, content) values ($domain_id, 'ALLOW-DNSUPDATE-FROM', '0.0.0.0/0')");
+mysql_query("insert into domainmetadata (domain_id, kind, content) values ($domain_id, 'TSIG-ALLOW-DNSUPDATE', '$host.$domain')");
+`rm /tmp/K$host.$domain*`;
+$k = chop (`/usr/sbin/dnssec-keygen -a hmac-md5 -b128 -K /tmp/ -n USER $host.$domain`);
+$tsig = `/bin/grep Key: /tmp/$k.private`;
+`/bin/rm /tmp/$k.private`;
+$tsig =substr( $tsig, 5, -1);
+mysql_query("insert into tsigkeys (name, algorithm, secret) values ('$host.$domain', 'hmac-md5', '$tsig')");
+if (mail($email, "$domain dynamic dns service", "Hi, \n
+\n
+Your update-url for $host.$domain is: ".curPageURL()."?$key\n
+Alternatively pass the key as password with any user name to above URL.\n
+\n
+Here is the TSIG/rfc2136 data:\n
+Server: ".$_SERVER['SERVER_ADDR']."\n
+Port: 53\n
+Key name: $host.$domain\n
+Key: $tsig\n
+Type: tsig/hmac-md5\n
+\n
+If you did not request this email, please ignore. There will be no further mailings")) {
 	echo "success. check your email!";
 } else {
 	echo "sending of email failed, please try again later";

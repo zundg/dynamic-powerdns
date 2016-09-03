@@ -7,6 +7,7 @@ if ($key == "") { # oh shits, fritz!box is too stupid to GET an URL....
 	$key=$_SERVER["PHP_AUTH_PW"];
 }
 $ip=$_SERVER['REMOTE_ADDR'];
+$key=preg_replace('/[^0-9a-zA-Z]*/', '', $key);
 if(strpos($ip, ":") != false) {
 	echo "sorry, IPv6 not supported!";
 	exit;
@@ -32,7 +33,7 @@ if($key != ""){
 ?>
 <form method=post action=signup.php>
 <table cellspacing=0><tr><th align=right>host</th><td><input name=host size=20>.<?php echo $a; ?></td></tr>
-<tr><th align=right>email</th><td><input name=email size=20 maxlength="60"> (for update url)</td></tr>
+<tr><th align=right>email</th><td><input name=email size=20 maxlength="60"> (for update url, tsig key and stuffs)</td></tr>
 <tr><td colspan=2><input size=100% type=submit></td></tr></table></form>
 <br><br>
 <?php
